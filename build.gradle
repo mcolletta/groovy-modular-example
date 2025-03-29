@@ -1,0 +1,93 @@
+plugins {
+    id 'groovy'
+    id 'application'
+}
+
+def klassName = 'io.modular.example.App'
+
+application {
+    mainClass = klassName
+}
+
+
+def currentOS = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem()
+def platform = ""
+if (currentOS.macOsX) {
+    platform = "mac"
+} else if (currentOS.linux) {
+    platform = "linux"
+} else if (currentOS.windows) {
+    platform = "win"
+}
+def javaFXVersion = "23"
+
+def groovyVersion = "4.0.26"
+
+repositories {
+    mavenCentral()
+}
+
+compileGroovy {
+    configure(groovyOptions) {
+        configurationScript = file("config/src/main/groovy/compiler-config.groovy")
+    }
+}
+
+dependencies {
+    implementation("org.openjfx:javafx-base:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-controls:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-graphics:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-fxml:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-media:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-swing:${javaFXVersion}:${platform}")
+
+    implementation("org.apache.groovy:groovy:${groovyVersion}")
+    implementation("org.apache.groovy:groovy-nio:${groovyVersion}")
+    implementation("org.apache.groovy:groovy-xml:${groovyVersion}")
+    implementation("org.apache.groovy:groovy-json:${groovyVersion}")
+}
+
+sourceSets {
+    main {
+        groovy {
+            srcDirs = ['src/main/groovy']
+        }
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ["src/main/groovy", "src/main/resources"]
+        }
+    }
+}
+
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
+}
+
+
+def jvmDefaultArgs = [ ]
+
+application {
+    mainModule = "io.modular.example"
+    mainClass = klassName
+    applicationDefaultJvmArgs = jvmDefaultArgs
+}
+
+// Caused by: java.lang.ExceptionInInitializerError
+//         at io.modular.example/io.modular.example.App.<init>(App.groovy)
+//         at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+//         ... 11 more
+// Caused by: groovy.lang.GroovyRuntimeException: Could not find matching constructor for: io.modular.example.Mode(String, Integer)
+//         at org.apache.groovy@4.0.26/groovy.lang.MetaClassImpl.createCachedConstructor(MetaClassImpl.java:1726)
+//         at org.apache.groovy@4.0.26/groovy.lang.MetaClassImpl.selectConstructorAndTransformArguments1(MetaClassImpl.java:1752)
+//         at org.apache.groovy@4.0.26/groovy.lang.MetaClassImpl.selectConstructorAndTransformArguments(MetaClassImpl.java:1679)
+//         at org.apache.groovy@4.0.26/org.codehaus.groovy.runtime.ScriptBytecodeAdapter.selectConstructorAndTransformArguments(ScriptBytecodeAdapter.java:252)
+//         at io.modular.example/io.modular.example.Mode.$INIT(App.groovy)
+//         at io.modular.example/io.modular.example.Mode.<clinit>(App.groovy)
+//         ... 13 more
+// Exception running application io.modular.example.App
+
